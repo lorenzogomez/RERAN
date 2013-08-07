@@ -5,7 +5,7 @@ Record and Replay for Android
 
 (c)  Copyright 2011-2013
 
-The preferred license for SCanDroid is the BSD License.
+The preferred license for RERAN is the BSD License.
 
 ####Getting Started
 
