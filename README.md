@@ -26,6 +26,19 @@ translated log of the original events. Third, push the translated
 log, e.g., translatedEvents.txt, onto the phone. Fourth, run the Replay 
 program using the adb shell.
 
+
+####ARM Cross-compiler
+
+In order for the replay program to run on Android devices, they must be compiled using a cross-compiler for ARM CPU's. If you already have an ARM cross-compiler on your computer, then you are ready to go. If not, please find one that works with your operating system. The executable contained in our release was compiled on Linux. From our experience, finding and installing an ARM cross-compiler for Mac was difficult; it is possible, but included many hacks to get going, and is not recommended. 
+
+We would recommend using Sourcery CodeBench for ARM Lite on Linux. 
+https://sourcery.mentor.com/GNUToolchain/release2450
+
+After the ARM cross-compiler is installed, you can compile the source code using the compiler's version of gcc, shown below.
+```    
+  arm-none-linux-gnueabi-gcc -static -o replay replay.c
+```
+
 ####Running Example
 
 Push replay tool onto the phone: "/data/local" will be our local 
