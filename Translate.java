@@ -165,13 +165,15 @@ public class Translate
 					int seconds = 0;
 					int microseconds = 0;
 					
+					line = line.replaceAll("[\\[][ ]*", "").replace("]", "");
 					tokens = line.split(splitOn);					
 					timestampString = tokens[0];
 					
 					if(!timestampString.equals("add") && timestampString.length() != 0 && !timestampString.equals("could"))
 					{										
-						timestampString = removeColon(timestampString);						
-						
+						timestampString = removeColon(timestampString);
+						timestampString = timestampString.replace(".", "-");
+
 						String[] times = null;											
 						times = timestampString.split("-");
 						seconds = stringToInt(times[0]);

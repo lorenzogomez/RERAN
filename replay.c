@@ -95,12 +95,18 @@ void goSleep(uint64_t nsec)
 int main(int argc, char *argv[])
 {		
 		
-	if(argc == 1)
+	if(argc == 2)
 	{
 		printf("ERROR: Please specify the location of the event file\n\n");
 		exit(1);
 	}	
 	
+	printf("STARTED\n");
+	fflush(stdout);
+	uint64_t delayTime = (uint64_t)strtoull(argv[2], NULL, 10);		
+	delayTime *= 1000000000;
+	goSleep(delayTime);
+
 	int returned = 0;	
 	long lineNumbers = 0;
 	
@@ -181,15 +187,23 @@ int main(int argc, char *argv[])
 		//[16] is for the event input number
 		
 		char* deviceP = device;
+		int fds[10];
 		int fd;
+
+		for (j=0;j<10;j++) fds[j] = -1;
 		
 		j=0,k=0;
 		
 		// For each of the line numbers get the event, validate it, and then write it
 		while(k < lineNumbers)
 		{				
-			deviceP[16] = eventType[k]+48; //add 48 to get to the ascii char
-			fd = open(deviceP, O_RDWR);		
+			int index = eventType[k];
+			if (fds[index] == -1)
+			{
+				deviceP[16] = eventType[k]+48; //add 48 to get to the ascii char
+				fds[index] = open(deviceP, O_RDWR);		
+			}
+			int fd = fds[index];
 
 			int ret;
 			int version;
@@ -256,7 +270,6 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "write event failed, %s\n", strerror(errno));
 				//should exit...				
 			}    
-			
 		}		
 	}
 	else // fopen() returned NULL
