@@ -91,6 +91,7 @@ void goSleep(uint64_t nsec)
 
 #define ARRAYSIZE(x)  (sizeof(x)/sizeof(*(x)))
  
+#define MAX_FDS 10
 
 int main(int argc, char *argv[])
 {		
@@ -182,6 +183,7 @@ int main(int argc, char *argv[])
 		
 		char* deviceP = device;
 		int fd;
+		int fdList[MAX_FDS] = {-1}; // Keep track of used fds to avoid reopening them over and over again
 		
 		j=0,k=0;
 		
@@ -189,7 +191,8 @@ int main(int argc, char *argv[])
 		while(k < lineNumbers)
 		{				
 			deviceP[16] = eventType[k]+48; //add 48 to get to the ascii char
-			fd = open(deviceP, O_RDWR);		
+			if (fdList[eventType[k]] < 0)
+				fdList[eventType[k]] = fd = open(deviceP, O_RDWR);
 
 			int ret;
 			int version;
@@ -258,6 +261,11 @@ int main(int argc, char *argv[])
 			}    
 			
 		}		
+
+		// Close the fds after using them
+		for (i = 0; i < MAX_FDS; i++)
+			if (fdList[i] >= 0)
+				close(fdList[i]);
 	}
 	else // fopen() returned NULL
 	{
