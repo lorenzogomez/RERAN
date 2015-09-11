@@ -2,6 +2,7 @@ _________
 Components:
   - tcpdump & libpcap
   - androidreran
+
 __________
 
 
@@ -10,7 +11,7 @@ __________
 Getting started is easy. Push the binaries to the android device's /data/local folder.
 
    ```
-   adb push bin/* /data/local/
+   adb push bin/ /data/local/
    ```
 
 
