@@ -1,5 +1,5 @@
 /*******************************************************************************
- * By Hesham Salman, 2015
+ * Author: Hesham Salman, 2015
  * Invokes tcpdump and getevent at the same time.
  * Prints out the pid of each process.
  */
