@@ -17,17 +17,9 @@ Getting started is easy. Push the binaries to the android device's /data/local f
 
  Once the binaries are present, run the begin_measuring binary.
 
-It spawns two threads, one that measures network connectivity, and another that captures touch events. Upon running, the program will print the IDs of the two threads, and when you are done recording, kill these two threads. The output files (recordedEvents, [timestamp].pcap) can now be pulled using adb.
-
-Run the CleanRecordedEvents java program to clean the output.
-
-```
-java CleanRecordedEvents recordedEvents
-```
+It spawns several threads: one that measures network connectivity, one that captures touch events, one that measures memory status, one that measures activity on the processor, and one that periodically takes screenshots. The output files (recordedEvents, [timestamp].pcap, cpuinfo.dat, meminfo.dat, screenshots/*) can now be pulled using adb.
 
 The output can now be processed using the translate java program.
-
-
 
   ```
   java Translate recordedEvents.dat translatedEvents.txt
