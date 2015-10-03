@@ -16,7 +16,6 @@
 
 #define BILLION 1000000000L
 
-// TODO: Refactor lines 103-118 and 75-89 and 43-52, anywhere where this grouping appears
 int main(int argc, char const *argv[]) {
   struct timespec mono, real_time;
   const uint64_t TIME_FMT = strlen("2012-12-31 12:59:59.123456789") + 1;
@@ -42,26 +41,30 @@ int main(int argc, char const *argv[]) {
     snprintf(filename, sizeof(filename), "%s_%lu.%lu.pcap", timestr, sec, nsec);
     int fd = open(filename, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
     dup2(fd, 1);
-    dup2(fd, 0);
+    dup2(fd, 2);
     close(fd);
 
     execlp("/data/local/tcpdump", "/data/local/tcpdump", "-i",  "any", "-p",
            "-s", "0", "-w", filename, NULL);
   }
   else {
+    //Main Thread
     getevent_thread = fork();
     if (getevent_thread == 0) {
+      //GetEvent Thread
       int fd = open("recordedEvents", O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
       dup2(fd, 1);
-      dup2(fd, 0);
+      dup2(fd, 2);
       close(fd);
       execlp("getevent", "getevent", "-tt", NULL);
     } else {
+      //Main Thread
       meminfo_thread = fork();
       if (meminfo_thread == 0) {
+        //Meminfo thread
         int fd = open("meminfo.dat", O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
         dup2(fd, 1);
-        dup2(fd, 0);
+        dup2(fd, 2);
         close(fd);
         while (1) {
           synchronize_time(mono, real_time);
@@ -87,10 +90,13 @@ int main(int argc, char const *argv[]) {
           sleep(500);
         }
       } else {
+        //Main Thread
         cpuinfo_thread = fork();
         if (cpuinfo_thread == 0) {
+          //CPUInfo thread
           int fd = open("cpuinfo.dat", O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
           dup2(fd, 1);
+          dup2(fd, 2);
           close(fd);
           while (1) {
             synchronize_time(mono, real_time);
@@ -113,9 +119,10 @@ int main(int argc, char const *argv[]) {
             sleep(500);
           }
         } else {
+          //Main Thead
           screenshot_thread = fork();
-
           if (screenshot_thread == 0) {
+            //Screenshot thread
             int i = 0;
             while (1) {
               char filename[255];
@@ -125,6 +132,7 @@ int main(int argc, char const *argv[]) {
               i++;
             }
           } else {
+            //Main Thread
             int user_signal = -1;
             printf("Type 0 to end measuring.\n");
             scanf("%d", &user_signal);
