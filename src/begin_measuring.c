@@ -70,22 +70,16 @@ int main(int argc, char const *argv[]) {
           synchronize_time(mono, real_time);
           long sec = mono.tv_sec;
           long nsec = mono.tv_nsec;
-          const int n = snprintf(NULL, 0, "%lu", sec);
-          char secbuf[n+1];
-          char filename[255];
+          char time_output[255];
 
-          snprintf(secbuf, n+1, "%lu", sec);
-
-          const int n2 = snprintf(NULL, 0, "%lu", nsec);
-          char nsecbuf[n2 + 1];
-          snprintf(nsecbuf, n2 + 1, "%lu", nsec);
           if (timespec2str(timestr, TIME_FMT, &real_time) != 0) {
             printf("timespec2str failed!\n");
             return 1;
           }
-          printf("%s.%s\n", secbuf, nsecbuf);
-          printf("%s\n", timestr);
 
+          snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr, sec, nsec);
+          printf("%s\n", time_output);
+          *time_output = '\0';
           execlp("dumpsys", "dumpsys", "meminfo", NULL);
           sleep(500);
         }
@@ -102,19 +96,15 @@ int main(int argc, char const *argv[]) {
             synchronize_time(mono, real_time);
             long sec = mono.tv_sec;
             long nsec = mono.tv_nsec;
-            const int n = snprintf(NULL, 0, "%lu", sec);
-            char secbuf[n+1];
-            snprintf(secbuf, n+1, "%lu", sec);
+            char time_output[255];
 
-            const int n2 = snprintf(NULL, 0, "%lu", nsec);
-            char nsecbuf[n2 + 1];
-            snprintf(nsecbuf, n2 + 1, "%lu", nsec);
             if (timespec2str(timestr, TIME_FMT, &real_time) != 0) {
               printf("timespec2str failed!\n");
               return 1;
             }
-            printf("%s.%s\n", secbuf, nsecbuf);
-            printf("%s\n", timestr);
+            snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr, sec, nsec);
+            printf("%s\n", time_output);
+            *time_output = '\0';
             execlp("dumpsys", "dumpsys", "cpuinfo",  NULL);
             sleep(500);
           }
