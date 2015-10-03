@@ -36,23 +36,10 @@ int main(int argc, char const *argv[]) {
   if (tcpdump_thread == 0) {
     /* TCPDump thread */
     char filename[255]; //255 = max filename size
-    strcpy(filename,timestr);
-    strcat(filename,"_"); /* the _ separates monotonic and real times */
 
     long sec = mono.tv_sec;
     long nsec = mono.tv_nsec;
-
-    const int n = snprintf(NULL, 0, "%lu", sec);
-    char secbuf[n+1];
-    snprintf(secbuf, n+1, "%lu", sec);
-
-    const int n2 = snprintf(NULL, 0, "%lu", nsec);
-    char nsecbuf[n2 + 1];
-    snprintf(nsecbuf, n2 + 1, "%lu", nsec);
-    strcat(filename, secbuf);
-    strcat(filename, ".");
-    strcat(filename, nsecbuf);
-    strcat(filename, ".pcap");
+    snprintf(filename, sizeof(filename), "%s_%lu.%lu.pcap", timestr, sec, nsec);
     int fd = open(filename, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
     dup2(fd, 1);
     dup2(fd, 0);
@@ -82,6 +69,8 @@ int main(int argc, char const *argv[]) {
           long nsec = mono.tv_nsec;
           const int n = snprintf(NULL, 0, "%lu", sec);
           char secbuf[n+1];
+          char filename[255];
+
           snprintf(secbuf, n+1, "%lu", sec);
 
           const int n2 = snprintf(NULL, 0, "%lu", nsec);
