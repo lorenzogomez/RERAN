@@ -3,7 +3,6 @@
   * Prints out the pid of each process.
   * TODO: RE-WRITE WITH PTHREADS INSTEAD OF FORK(). GETS MESSY WITH FORKS.
   */
-
 #include <stdio.h>
 #include <stdint.h> /* for uint64 definition */
 #include <stdlib.h> /* for exit() definition */
@@ -13,8 +12,44 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+int clock_gettime(clockid_t clk_id, struct timespec *tp);
 #define BILLION 1000000000L
+
+void synchronize_time(struct timespec mono, struct timespec real_time) {
+  /* measure monotonic time */
+  clock_gettime(CLOCK_MONOTONIC, &mono);
+
+  /* measure human-readable time */
+  clock_gettime(CLOCK_REALTIME, &real_time);
+}
+
+void terminate_child(pid_t child_pid) {
+  kill(child_pid, SIGTERM);
+}
+
+void kill_child(pid_t child_pid) {
+  kill(child_pid, SIGKILL);
+}
+
+int timespec2str(char *buf, uint64_t len, struct timespec *ts) {
+    int ret;
+    struct tm t;
+
+    tzset();
+    if (localtime_r(&(ts->tv_sec), &t) == NULL)
+        return 1;
+
+    ret = strftime(buf, len, "%F %T", &t);
+    if (ret == 0)
+        return 2;
+    len -= ret - 1;
+
+    ret = snprintf(&buf[strlen(buf)], len, ".%09ld", ts->tv_nsec);
+    if (ret >= len)
+        return 3;
+
+    return 0;
+}
 
 int main(int argc, char const *argv[]) {
   struct timespec mono, real_time;
@@ -28,9 +63,9 @@ int main(int argc, char const *argv[]) {
     printf("timespec2str failed!\n");
     return 1;
   }
-  pid_t tcpdump_thread, getevent_thread, meminfo_thread, cpuinfo_thread, screenshot_thread;
+  pid_t tcpdump_thread, getevent_thread, meminfo_thread, cpuinfo_thread,
+   screenshot_thread;
   tcpdump_thread = fork();
-
 
   if (tcpdump_thread == 0) {
     /* TCPDump thread */
@@ -77,7 +112,8 @@ int main(int argc, char const *argv[]) {
             return 1;
           }
 
-          snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr, sec, nsec);
+          snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr,
+            sec, nsec);
           printf("%s\n", time_output);
           *time_output = '\0';
           execlp("dumpsys", "dumpsys", "meminfo", NULL);
@@ -102,7 +138,8 @@ int main(int argc, char const *argv[]) {
               printf("timespec2str failed!\n");
               return 1;
             }
-            snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr, sec, nsec);
+            snprintf(time_output, sizeof(time_output), "%s\t%lu.%lu", timestr,
+              sec, nsec);
             printf("%s\n", time_output);
             *time_output = '\0';
             execlp("dumpsys", "dumpsys", "cpuinfo",  NULL);
@@ -116,7 +153,8 @@ int main(int argc, char const *argv[]) {
             int i = 0;
             while (1) {
               char filename[255];
-              snprintf(filename, sizeof(filename), "/data/local/screenshots/screen%d.png", i);
+              snprintf(filename, sizeof(filename),
+                "/data/local/screenshots/screen%d.png", i);
               execlp("screencap", "screencap", "-p", filename, NULL);
               sleep(500);
               i++;
@@ -140,40 +178,4 @@ int main(int argc, char const *argv[]) {
     }
   }
   return 0;
-}
-
-void synchronize_time(struct timespec mono, struct timespec real_time) {
-  /* measure monotonic time */
-  clock_gettime(CLOCK_MONOTONIC, &mono);
-
-  /* measure human-readable time */
-  clock_gettime(CLOCK_REALTIME, &real_time);
-}
-
-void terminate_child(pid_t child_pid) {
-  kill(child_pid, SIGTERM);
-}
-
-void kill_child(pid_t child_pid) {
-  kill(child_pid, SIGKILL);
-}
-
-int timespec2str(char *buf, uint64_t len, struct timespec *ts) {
-    int ret;
-    struct tm t;
-
-    tzset();
-    if (localtime_r(&(ts->tv_sec), &t) == NULL)
-        return 1;
-
-    ret = strftime(buf, len, "%F %T", &t);
-    if (ret == 0)
-        return 2;
-    len -= ret - 1;
-
-    ret = snprintf(&buf[strlen(buf)], len, ".%09ld", ts->tv_nsec);
-    if (ret >= len)
-        return 3;
-
-    return 0;
 }
