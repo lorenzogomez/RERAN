@@ -15,14 +15,6 @@
 int clock_gettime(clockid_t clk_id, struct timespec *tp);
 #define BILLION 1000000000L
 
-void synchronize_time(struct timespec mono, struct timespec real_time) {
-  /* measure monotonic time */
-  clock_gettime(CLOCK_MONOTONIC, &mono);
-
-  /* measure human-readable time */
-  clock_gettime(CLOCK_REALTIME, &real_time);
-}
-
 void terminate_child(pid_t child_pid) {
   kill(child_pid, SIGTERM);
 }
@@ -56,13 +48,23 @@ int main(int argc, char const *argv[]) {
   const uint64_t TIME_FMT = strlen("2012-12-31 12:59:59.123456789") + 1;
   char timestr[TIME_FMT];
 
-  synchronize_time(mono, real_time);
+  /* measure monotonic time */
+  clock_gettime(CLOCK_MONOTONIC, &mono);
+
+  /* measure human-readable time */
+  clock_gettime(CLOCK_REALTIME, &real_time);
+
+
+  printf("RAW REAL: %lu.%lu\n", real_time.tv_sec, real_time.tv_nsec);
 
   /* convert real_time into a time of day */
   if (timespec2str(timestr, TIME_FMT, &real_time) != 0) {
     printf("timespec2str failed!\n");
     return 1;
   }
+
+  printf("TIMESPEC: %s\n", timestr);
+
   pid_t tcpdump_thread, getevent_thread, meminfo_thread, cpuinfo_thread,
    screenshot_thread;
   tcpdump_thread = fork();
@@ -102,7 +104,11 @@ int main(int argc, char const *argv[]) {
         dup2(fd, 2);
         close(fd);
         while (1) {
-          synchronize_time(mono, real_time);
+          /* measure monotonic time */
+          clock_gettime(CLOCK_MONOTONIC, &mono);
+
+          /* measure human-readable time */
+          clock_gettime(CLOCK_REALTIME, &real_time);
           long sec = mono.tv_sec;
           long nsec = mono.tv_nsec;
           char time_output[255];
@@ -129,7 +135,11 @@ int main(int argc, char const *argv[]) {
           dup2(fd, 2);
           close(fd);
           while (1) {
-            synchronize_time(mono, real_time);
+            /* measure monotonic time */
+            clock_gettime(CLOCK_MONOTONIC, &mono);
+
+            /* measure human-readable time */
+            clock_gettime(CLOCK_REALTIME, &real_time);
             long sec = mono.tv_sec;
             long nsec = mono.tv_nsec;
             char time_output[255];
