@@ -257,6 +257,7 @@ int main(int argc, char *argv[])
 				//should exit...				
 			}    
 			
+			close(fd);
 		}		
 	}
 	else // fopen() returned NULL
